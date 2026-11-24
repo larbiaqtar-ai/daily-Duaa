@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daily Duaa</title>
+<meta name="theme-color" content="#0d4a52">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily Duaa">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Morning and evening adhkar, duaa for parents, children and travel, tasbeeh counter, prayer times and the Quran.">
+<style>
+@font-face{font-family:'Amiri';font-display:swap;src:url(amiri.woff2) format('woff2')}
+@font-face{font-family:'Amiri Quran';font-display:swap;src:url(amiri-quran.woff2) format('woff2')}
+
+/* VOICE: quiet, devotional, unhurried; few hues, generous air.
+   IDEA: a mihrab window: the page's arch frames the sky as it changes through the day, like a mosque's prayer-time board.
+   PICTURE: a pointed arch with a live sky, a sun or moon crossing it, and the clock inside.
+   COLOUR and TYPE: deep mosque-tile teal fields, white, turquoise support, saffron for "next". Amiri and Amiri Quran for the texts, Plex Sans Arabic for the interface.
+   LAYOUT: arch hero → six-prayer strip → sticky section chips → one calm reading column of duaa cards with large counters. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#091416);--card:light-dark(#f2f6f5,#11201f);--line:light-dark(#dce6e4,#1e3331);
+--ink:light-dark(#10262a,#e5efed);--mute:light-dark(#53696c,#93aaa8);
+--deep:light-dark(#0d4a52,#0a3238);--deep2:light-dark(#0a3a41,#072528);--tq:light-dark(#1f8f89,#4cc9c1);--sf:#f0b23e;
+--ar:"Amiri",serif;--qr:"Amiri Quran","Amiri",serif;--ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;--sc:1}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--ui);overflow-x:clip;-webkit-tap-highlight-color:transparent}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sf);outline-offset:2px;border-radius:8px}
+.band{padding:clamp(18px,4vw,40px) max(5vw,16px)}
+.wrap{max-width:760px;margin:0 auto}
+main.band{padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+
+/* hero */
+.hero{background:var(--deep);color:#fff;padding-bottom:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) max(5vw,16px) 0;max-width:860px;margin:0 auto}
+.brand{font-weight:600;font-size:17px;letter-spacing:.01em}
+.brand span{font-family:var(--ar);font-size:22px;margin-inline-start:6px;opacity:.9}
+.city{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 14px;color:#fff;min-height:40px;font-size:16px}
+.city option{color:#10262a}
+.arch{position:relative;max-width:560px;margin:14px auto 0;padding:0 max(5vw,16px)}
+.arch svg{display:block;width:100%;height:auto}
+.clock{position:absolute;inset:34% 0 auto;text-align:center;pointer-events:none}
+.time{font-size:clamp(54px,15vw,92px);font-weight:500;line-height:1;letter-spacing:-.02em;text-shadow:0 2px 18px rgba(0,0,0,.35);font-variant-numeric:tabular-nums;white-space:nowrap}
+.time small{font-size:.32em;opacity:.8;margin-inline-start:4px}
+.hijri{font-family:var(--ar);font-size:clamp(20px,5vw,26px);margin-top:10px;text-shadow:0 1px 10px rgba(0,0,0,.4)}
+.greg{font-size:14px;opacity:.85}
+.next{text-align:center;margin:12px auto 0;font-size:17px}
+.next b{color:var(--sf);font-weight:600}
+.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;max-width:760px;margin:16px auto 0;padding:0 max(5vw,16px)}
+.pt{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 4px;text-align:center}
+.pt .ar{font-family:var(--ar);font-size:17px;line-height:1.2}
+.pt .en{font-size:12px;opacity:.75}
+.pt .tm{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pt.on{background:var(--sf);color:#1d1400}
+.pt.on .en{opacity:.8}
+.method{max-width:760px;margin:10px auto 0;padding:0 max(5vw,16px);font-size:13px;opacity:.7;text-align:center}
+/* compact header on inner pages */
+body:not(.home) .arch,body:not(.home) .next,body:not(.home) .strip,body:not(.home) .method{display:none}
+body:not(.home) .hero{padding-bottom:12px}
+.mini{display:none;max-width:860px;margin:8px auto 0;padding:0 max(5vw,16px);font-size:15px;justify-content:space-between;gap:10px;flex-wrap:wrap}
+body:not(.home) .mini{display:flex}
+.mini b{font-variant-numeric:tabular-nums}
+.mini .nx b{color:var(--sf)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:5;background:var(--deep2);display:flex;gap:6px;overflow-x:auto;padding:8px max(5vw,16px);scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:none;color:#d7ecea;text-decoration:none;padding:9px 14px;border-radius:999px;font-size:15px;min-height:40px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+nav a[aria-current]{background:#fff;color:var(--deep);font-weight:600}
+
+/* home */
+.now{display:block;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--tq),var(--deep));border-radius:22px;padding:22px;margin-bottom:14px}
+.now .k{font-size:14px;opacity:.85}.now .t{font-size:26px;font-weight:600;line-height:1.2;margin:4px 0}.now .a{font-family:var(--ar);font-size:24px}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:2px;min-height:112px}
+.tile .a{font-family:var(--ar);font-size:22px;line-height:1.3;color:var(--tq)}
+.tile .e{font-weight:600}
+.tile .p{font-size:13px;color:var(--mute);margin-top:auto}
+.bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--tq);border-radius:4px;transition:width .3s}
+
+/* section */
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.05;margin:0;text-wrap:balance}
+h1 .a{display:block;font-family:var(--ar);font-weight:400;font-size:.8em;color:var(--tq);margin-bottom:4px}
+.prog{font-size:14px;color:var(--mute);white-space:nowrap}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px}
+.tb{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:44px;min-width:44px;font-size:15px}
+.tb[aria-pressed=true]{background:var(--tq);border-color:var(--tq);color:#fff}
+.cards{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 18px 16px;scroll-margin-top:80px;transition:opacity .3s}
+.card.done{opacity:.55}
+.txt{font-family:var(--ar);font-size:calc(25px * var(--sc));line-height:2;text-align:right;white-space:pre-line}
+.card.q .txt{font-family:var(--qr);line-height:2.25}
+.mean{color:var(--mute);margin-top:10px;font-size:15.5px}
+.hide-mean .mean{display:none}
+.note{margin-top:8px;font-size:14.5px;border-inline-start:3px solid var(--sf);padding-inline-start:10px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.ref{font-size:13px;color:var(--mute)}
+.ctr{flex:none;width:64px;height:64px;border-radius:50%;border:0;background:conic-gradient(var(--tq) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;padding:0}
+.ctr span{width:54px;height:54px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.card.done .ctr span{background:var(--tq);color:#fff}
+.ctr:active span{transform:scale(.94)}
+.of{font-size:12px;color:var(--mute);text-align:center;margin-top:2px}
+
+/* quran */
+.search{width:100%;font-size:16px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);min-height:48px;margin:12px 0}
+.cont{display:block;background:var(--deep);color:#fff;text-decoration:none;border-radius:16px;padding:14px 16px;margin:4px 0 8px}
+.sl{list-style:none;padding:0;margin:0}
+.sl button{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px;min-height:60px}
+.num{width:36px;height:36px;border-radius:10px;background:var(--card);display:grid;place-items:center;font-size:14px;font-weight:600;color:var(--tq);transform:rotate(45deg)}
+.num i{transform:rotate(-45deg);font-style:normal}
+.sn{font-family:var(--ar);font-size:22px;color:var(--tq);direction:rtl}
+.st small{display:block;color:var(--mute);font-size:13px}
+.reader .rh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.surah-title{text-align:center;border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card);margin-bottom:14px}
+.surah-title .a{font-family:var(--qr);font-size:34px;color:var(--tq);line-height:1.6}
+.surah-title small{color:var(--mute)}
+.bism{font-family:var(--qr);text-align:center;font-size:calc(26px * var(--sc));margin:6px 0 10px}
+.ayat{font-family:var(--qr);font-size:calc(27px * var(--sc));line-height:2.4;text-align:justify;direction:rtl}
+.ayat .n{color:var(--tq);font-size:.85em;white-space:nowrap}
+.rnav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.msg{color:var(--mute);padding:24px 0;text-align:center}
+.small{font-size:13px;color:var(--mute);margin-top:22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 12px;min-height:44px;font-family:var(--ar);font-size:18px;line-height:1.4}
+.chip[aria-pressed=true]{background:var(--deep);border-color:var(--deep);color:#fff}
+.chip.set{font-family:var(--ui);font-size:15px;border-color:var(--tq);color:var(--tq)}
+.chip.set[aria-pressed=true]{background:var(--tq);color:#fff}
+.tg{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;font-size:14px;color:var(--mute)}
+.tg .tb{min-width:56px}
+.tas{text-align:center;padding:8px 0 4px}
+.tar{font-family:var(--ar);font-size:calc(28px * var(--sc));line-height:1.7;min-height:2em;text-wrap:balance}
+.ten{color:var(--mute);font-size:14px;margin-bottom:14px}
+.big{width:min(72vw,270px);aspect-ratio:1;border-radius:50%;border:0;padding:0;background:conic-gradient(var(--tq) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;touch-action:manipulation;user-select:none;-webkit-user-select:none;margin:0 auto}
+.big>span{width:calc(100% - 18px);height:calc(100% - 18px);border-radius:50%;background:var(--deep);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .08s}
+.big:active>span{transform:scale(.97)}
+.big b{font-size:clamp(64px,20vw,92px);font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:14px;opacity:.8;margin-top:8px}
+.big.hit>span{background:var(--tq)}
+.row{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.today{margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+.today h2{font-size:17px;margin:0 0 8px}
+.trow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.trow .a{font-family:var(--ar);font-size:18px}.trow b{font-variant-numeric:tabular-nums}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(4,20,22,.7);display:grid;place-items:center;padding:20px}
+.ov>div{background:var(--bg);border-radius:22px;padding:22px;width:min(420px,100%);max-height:90vh;overflow:auto}
+.ov h2{margin:0 0 4px;font-size:22px}.ov p{margin:0 0 14px;color:var(--mute);font-size:15px}
+.ov button{display:block;width:100%;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;min-height:48px}
+.ov button.loc{background:var(--deep);color:#fff;border-color:var(--deep)}
+@media(max-width:600px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.tiles{gap:8px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body class="home">
+<header class="hero">
+  <div class="top">
+    <div class="brand">Daily Duaa<span>أذكاري</span></div>
+    <label><span hidden>City</span><select class="city" id="city" aria-label="City for prayer times"></select></label>
+  </div>
+  <div class="arch">
+    <svg viewBox="0 0 400 330" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop id="s1" offset="0"/><stop id="s2" offset="1"/></linearGradient>
+        <clipPath id="ac"><path id="ap" d="M30 330V170C30 92 120 34 200 4C280 34 370 92 370 170V330Z"/></clipPath>
+        <pattern id="tile" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M20 2L38 20L20 38L2 20Z" fill="none" stroke="rgba(255,255,255,.07)"/></pattern>
+      </defs>
+      <rect width="400" height="330" fill="url(#tile)"/>
+      <g clip-path="url(#ac)">
+        <rect width="400" height="330" fill="url(#sky)"/>
+        <circle id="orb" r="16" cx="200" cy="120"/>
+        <path d="M30 300Q120 278 200 288T370 284V330H30Z" fill="rgba(0,0,0,.22)"/>
+        <rect y="296" width="400" height="34" fill="rgba(0,0,0,.18)"/>
+      </g>
+      <path d="M30 330V170C30 92 120 34 200 4C280 34 370 92 370 170V330" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+      <path d="M16 330V166C16 84 112 22 200 -10" fill="none" stroke="rgba(255,255,255,.18)"/>
+      <path d="M384 330V166C384 84 288 22 200 -10" fill="none" stroke="rgba(255,255,255,.18)"/>
+    </svg>
+    <div class="clock"><div class="time" id="time">--:--</div><div class="hijri" id="hijri"></div><div class="greg" id="greg"></div></div>
+  </div>
+  <div class="next" id="next"></div>
+  <div class="strip" id="strip"></div>
+  <div class="method" id="method"></div>
+  <div class="mini"><span><b id="mtime"></b> · <span id="mhijri"></span></span><span class="nx" id="mnext"></span></div>
+</header>
+<nav id="nav" aria-label="Sections"></nav>
+<main class="band"><div class="wrap" id="view"></div></main>
+<script>
+{
+const DATA={"morning":[{"n":1,"ref":"Al-Baqarah 2:255 · Al-Nasa'i","mean":"Ayat al-Kursi: Allah, there is no god but He, the Ever-Living, the Sustainer of all…","note":"Protection until evening (or until morning).","id":"m-kursi","t":"ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ لَا تَأۡخُذُهُۥ سِنَةٞ وَلَا نَوۡمٞۚ لَّهُۥ مَا فِي ٱلسَّمَٰوَٰتِ وَمَا فِي ٱلۡأَرۡضِۗ مَن ذَا ٱلَّذِي يَشۡفَعُ عِندَهُۥٓ إِلَّا بِإِذۡنِهِۦۚ يَعۡلَمُ مَا بَيۡنَ أَيۡدِيهِمۡ وَمَا خَلۡفَهُمۡۖ وَلَا يُحِيطُونَ بِشَيۡءٖ مِّنۡ عِلۡمِهِۦٓ إِلَّا بِمَا شَآءَۚ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ وَلَا يَـُٔودُهُۥ حِفۡظُهُمَاۚ وَهُوَ ٱلۡعَلِيُّ ٱلۡعَظِيمُ ﴿٢٥٥﴾","q":true},{"n":3,"ref":"Al-Ikhlas · Abu Dawud, Al-Tirmidhi","mean":"Say: He is Allah, the One.","note":"The three Quls, three times each, suffice you against everything.","id":"m-ikhlas","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ هُوَ ٱللَّهُ أَحَدٌ ﴿١﴾ ٱللَّهُ ٱلصَّمَدُ ﴿٢﴾ لَمۡ يَلِدۡ وَلَمۡ يُولَدۡ ﴿٣﴾ وَلَمۡ يَكُن لَّهُۥ كُفُوًا أَحَدُۢ ﴿٤﴾","q":true},{"n":3,"ref":"Al-Falaq · Abu Dawud, Al-Tirmidhi","mean":"Say: I seek refuge in the Lord of daybreak.","note":null,"id":"m-falaq","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلۡفَلَقِ ﴿١﴾ مِن شَرِّ مَا خَلَقَ ﴿٢﴾ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ﴿٣﴾ وَمِن شَرِّ ٱلنَّفَّـٰثَٰتِ فِي ٱلۡعُقَدِ ﴿٤﴾ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ﴿٥﴾","q":true},{"n":3,"ref":"Al-Nas · Abu Dawud, Al-Tirmidhi","mean":"Say: I seek refuge in the Lord of mankind.","note":null,"id":"m-nas","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلنَّاسِ ﴿١﴾ مَلِكِ ٱلنَّاسِ ﴿٢﴾ إِلَٰهِ ٱلنَّاسِ ﴿٣﴾ مِن شَرِّ ٱلۡوَسۡوَاسِ ٱلۡخَنَّاسِ ﴿٤﴾ ٱلَّذِي يُوَسۡوِسُ فِي صُدُورِ ٱلنَّاسِ ﴿٥﴾ مِنَ ٱلۡجِنَّةِ وَٱلنَّاسِ ﴿٦﴾","q":true},{"n":1,"ref":"Muslim","mean":"We have entered this day and the dominion belongs to Allah… I ask You for the good of this day and what follows it.","note":null,"id":"m-asbahna","t":"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ","q":false},{"n":1,"ref":"Al-Tirmidhi","mean":"O Allah, by You we enter the morning and the evening, by You we live and die, and to You is the return.","note":null,"id":"m-bika","t":"اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ","q":false},{"n":1,"ref":"Al-Bukhari","mean":"Sayyid al-Istighfar: You are my Lord… I acknowledge Your favour and my sin, so forgive me.","note":"The master of seeking forgiveness.","id":"m-sayyid","t":"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ","q":false},{"n":4,"ref":"Abu Dawud","mean":"I call You, the bearers of Your Throne, Your angels and all creation to witness that You are Allah…","note":null,"id":"m-ushhiduk","t":"اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلَائِكَتَكَ، وَجَمِيعَ خَلْقِكَ، أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ، وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ","q":false},{"n":1,"ref":"Abu Dawud","mean":"Whatever blessing I or any of Your creation have is from You alone; to You be praise and thanks.","note":null,"id":"m-nimah","t":"اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِنْ خَلْقِكَ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ","q":false},{"n":3,"ref":"Abu Dawud","mean":"O Allah, grant me well-being in my body, hearing and sight… I seek refuge from disbelief, poverty and the punishment of the grave.","note":null,"id":"m-afini","t":"اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَهَ إِلَّا أَنْتَ. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ وَالْفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لَا إِلَهَ إِلَّا أَنْتَ","q":false},{"n":7,"ref":"Abu Dawud","mean":"Allah is sufficient for me; there is no god but He. In Him I trust; He is Lord of the Mighty Throne.","note":null,"id":"m-hasbi","t":"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ، وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ","q":false},{"n":1,"ref":"Abu Dawud, Ibn Majah","mean":"I ask You for pardon and well-being in my religion, my worldly life, my family and my wealth; guard me from every side.","note":null,"id":"m-afw","t":"اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي","q":false},{"n":1,"ref":"Abu Dawud, Al-Tirmidhi","mean":"Knower of the unseen and the seen… I seek refuge from the evil of myself and of Satan.","note":null,"id":"m-alim","t":"اللَّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ، فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي، وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا، أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ","q":false},{"n":3,"ref":"Abu Dawud, Al-Tirmidhi","mean":"In the name of Allah, with whose name nothing on earth or in heaven can cause harm.","note":null,"id":"m-bismillah","t":"بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ","q":false},{"n":3,"ref":"Abu Dawud, Al-Tirmidhi","mean":"I am pleased with Allah as Lord, Islam as religion and Muhammad ﷺ as Prophet.","note":null,"id":"m-radhitu","t":"رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا","q":false},{"n":1,"ref":"Al-Nasa'i, Al-Hakim","mean":"O Ever-Living, O Sustainer, by Your mercy I seek help: set right all my affairs.","note":null,"id":"m-hayy","t":"يَا حَيُّ يَا قَيُّومُ، بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ","q":false},{"n":1,"ref":"Abu Dawud","mean":"I ask You for the good of this day: its openings, victory, light, blessing and guidance.","note":null,"id":"m-khayr","t":"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ رَبِّ الْعَالَمِينَ، اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ هَذَا الْيَوْمِ: فَتْحَهُ، وَنَصْرَهُ، وَنُورَهُ، وَبَرَكَتَهُ، وَهُدَاهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِيهِ وَشَرِّ مَا بَعْدَهُ","q":false},{"n":1,"ref":"Ahmad","mean":"We rise upon the natural faith of Islam, the word of sincerity, and the way of our father Ibrahim.","note":null,"id":"m-fitrah","t":"أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ ﷺ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ، حَنِيفًا مُسْلِمًا، وَمَا كَانَ مِنَ الْمُشْرِكِينَ","q":false},{"n":3,"ref":"Muslim","mean":"Glory and praise to Allah, as many as His creation, as He is pleased, as heavy as His Throne, as vast as His words.","note":null,"id":"m-adad","t":"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ","q":false},{"n":1,"ref":"Ibn Majah","mean":"O Allah, I ask You for beneficial knowledge, good provision and accepted deeds.","note":null,"id":"m-ilman","t":"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا","q":false},{"n":10,"ref":"Al-Nasa'i · 100 times in the morning: Al-Bukhari, Muslim","mean":"There is no god but Allah alone, without partner; His is the dominion and the praise, and He has power over all things.","note":"10 times, or 100 times for the full reward.","id":"m-tahlil","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ","q":false},{"n":100,"ref":"Muslim","mean":"Glory be to Allah and praise Him.","note":null,"id":"m-subhan","t":"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ","q":false},{"n":100,"ref":"Al-Bukhari, Muslim","mean":"I seek Allah's forgiveness and turn to Him in repentance.","note":null,"id":"m-istighfar","t":"أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ","q":false},{"n":10,"ref":"Al-Tabarani","mean":"O Allah, send prayers and peace upon our Prophet Muhammad.","note":null,"id":"m-salat","t":"اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ","q":false}],"evening":[{"n":1,"ref":"Al-Baqarah 2:255 · Al-Nasa'i","mean":"Ayat al-Kursi: Allah, there is no god but He, the Ever-Living, the Sustainer of all…","note":"Protection until evening (or until morning).","id":"e-kursi","t":"ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ لَا تَأۡخُذُهُۥ سِنَةٞ وَلَا نَوۡمٞۚ لَّهُۥ مَا فِي ٱلسَّمَٰوَٰتِ وَمَا فِي ٱلۡأَرۡضِۗ مَن ذَا ٱلَّذِي يَشۡفَعُ عِندَهُۥٓ إِلَّا بِإِذۡنِهِۦۚ يَعۡلَمُ مَا بَيۡنَ أَيۡدِيهِمۡ وَمَا خَلۡفَهُمۡۖ وَلَا يُحِيطُونَ بِشَيۡءٖ مِّنۡ عِلۡمِهِۦٓ إِلَّا بِمَا شَآءَۚ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ وَلَا يَـُٔودُهُۥ حِفۡظُهُمَاۚ وَهُوَ ٱلۡعَلِيُّ ٱلۡعَظِيمُ ﴿٢٥٥﴾","q":true},{"n":3,"ref":"Al-Ikhlas · Abu Dawud, Al-Tirmidhi","mean":"Say: He is Allah, the One.","note":"The three Quls, three times each, suffice you against everything.","id":"e-ikhlas","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ هُوَ ٱللَّهُ أَحَدٌ ﴿١﴾ ٱللَّهُ ٱلصَّمَدُ ﴿٢﴾ لَمۡ يَلِدۡ وَلَمۡ يُولَدۡ ﴿٣﴾ وَلَمۡ يَكُن لَّهُۥ كُفُوًا أَحَدُۢ ﴿٤﴾","q":true},{"n":3,"ref":"Al-Falaq · Abu Dawud, Al-Tirmidhi","mean":"Say: I seek refuge in the Lord of daybreak.","note":null,"id":"e-falaq","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلۡفَلَقِ ﴿١﴾ مِن شَرِّ مَا خَلَقَ ﴿٢﴾ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ﴿٣﴾ وَمِن شَرِّ ٱلنَّفَّـٰثَٰتِ فِي ٱلۡعُقَدِ ﴿٤﴾ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ﴿٥﴾","q":true},{"n":3,"ref":"Al-Nas · Abu Dawud, Al-Tirmidhi","mean":"Say: I seek refuge in the Lord of mankind.","note":null,"id":"e-nas","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلنَّاسِ ﴿١﴾ مَلِكِ ٱلنَّاسِ ﴿٢﴾ إِلَٰهِ ٱلنَّاسِ ﴿٣﴾ مِن شَرِّ ٱلۡوَسۡوَاسِ ٱلۡخَنَّاسِ ﴿٤﴾ ٱلَّذِي يُوَسۡوِسُ فِي صُدُورِ ٱلنَّاسِ ﴿٥﴾ مِنَ ٱلۡجِنَّةِ وَٱلنَّاسِ ﴿٦﴾","q":true},{"n":1,"ref":"Muslim","mean":"We have entered this day and the dominion belongs to Allah… I ask You for the good of this day and what follows it.","note":null,"id":"e-asbahna","t":"أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ","q":false},{"n":1,"ref":"Al-Tirmidhi","mean":"O Allah, by You we enter the morning and the evening, by You we live and die, and to You is the return.","note":null,"id":"e-bika","t":"اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ","q":false},{"n":1,"ref":"Al-Bukhari","mean":"Sayyid al-Istighfar: You are my Lord… I acknowledge Your favour and my sin, so forgive me.","note":"The master of seeking forgiveness.","id":"e-sayyid","t":"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ","q":false},{"n":4,"ref":"Abu Dawud","mean":"I call You, the bearers of Your Throne, Your angels and all creation to witness that You are Allah…","note":null,"id":"e-ushhiduk","t":"اللَّهُمَّ إِنِّي أَمْسَيْتُ أُشْهِدُكَ، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلَائِكَتَكَ، وَجَمِيعَ خَلْقِكَ، أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ، وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ","q":false},{"n":1,"ref":"Abu Dawud","mean":"Whatever blessing I or any of Your creation have is from You alone; to You be praise and thanks.","note":null,"id":"e-nimah","t":"اللَّهُمَّ مَا أَمْسَى بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِنْ خَلْقِكَ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ","q":false},{"n":3,"ref":"Abu Dawud","mean":"O Allah, grant me well-being in my body, hearing and sight… I seek refuge from disbelief, poverty and the punishment of the grave.","note":null,"id":"e-afini","t":"اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَهَ إِلَّا أَنْتَ. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ وَالْفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لَا إِلَهَ إِلَّا أَنْتَ","q":false},{"n":7,"ref":"Abu Dawud","mean":"Allah is sufficient for me; there is no god but He. In Him I trust; He is Lord of the Mighty Throne.","note":null,"id":"e-hasbi","t":"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ، وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ","q":false},{"n":1,"ref":"Abu Dawud, Ibn Majah","mean":"I ask You for pardon and well-being in my religion, my worldly life, my family and my wealth; guard me from every side.","note":null,"id":"e-afw","t":"اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي","q":false},{"n":1,"ref":"Abu Dawud, Al-Tirmidhi","mean":"Knower of the unseen and the seen… I seek refuge from the evil of myself and of Satan.","note":null,"id":"e-alim","t":"اللَّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ، فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي، وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا، أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ","q":false},{"n":3,"ref":"Abu Dawud, Al-Tirmidhi","mean":"In the name of Allah, with whose name nothing on earth or in heaven can cause harm.","note":null,"id":"e-bismillah","t":"بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ","q":false},{"n":3,"ref":"Abu Dawud, Al-Tirmidhi","mean":"I am pleased with Allah as Lord, Islam as religion and Muhammad ﷺ as Prophet.","note":null,"id":"e-radhitu","t":"رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا","q":false},{"n":1,"ref":"Al-Nasa'i, Al-Hakim","mean":"O Ever-Living, O Sustainer, by Your mercy I seek help: set right all my affairs.","note":null,"id":"e-hayy","t":"يَا حَيُّ يَا قَيُّومُ، بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ","q":false},{"n":1,"ref":"Abu Dawud","mean":"I ask You for the good of this day: its openings, victory, light, blessing and guidance.","note":null,"id":"e-khayr","t":"أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ رَبِّ الْعَالَمِينَ، اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ هَذِهِ اللَّيْلَةِ: فَتْحَهَا، وَنَصْرَهَا، وَنُورَهَا، وَبَرَكَتَهَا، وَهُدَاهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِيهَا وَشَرِّ مَا بَعْدَهَا","q":false},{"n":1,"ref":"Ahmad","mean":"We rise upon the natural faith of Islam, the word of sincerity, and the way of our father Ibrahim.","note":null,"id":"e-fitrah","t":"أَمْسَيْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ ﷺ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ، حَنِيفًا مُسْلِمًا، وَمَا كَانَ مِنَ الْمُشْرِكِينَ","q":false},{"n":3,"ref":"Muslim","mean":"I seek refuge in the perfect words of Allah from the evil of what He created.","note":null,"id":"e-kalimat","t":"أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ","q":false},{"n":1,"ref":"Al-Baqarah 2:285–286 · Al-Bukhari","mean":"The last two verses of Al-Baqarah.","note":"Whoever recites them at night, they suffice him.","id":"e-baqarah_end","t":"ءَامَنَ ٱلرَّسُولُ بِمَآ أُنزِلَ إِلَيۡهِ مِن رَّبِّهِۦ وَٱلۡمُؤۡمِنُونَۚ كُلٌّ ءَامَنَ بِٱللَّهِ وَمَلَـٰٓئِكَتِهِۦ وَكُتُبِهِۦ وَرُسُلِهِۦ لَا نُفَرِّقُ بَيۡنَ أَحَدٖ مِّن رُّسُلِهِۦۚ وَقَالُواْ سَمِعۡنَا وَأَطَعۡنَاۖ غُفۡرَانَكَ رَبَّنَا وَإِلَيۡكَ ٱلۡمَصِيرُ ﴿٢٨٥﴾ لَا يُكَلِّفُ ٱللَّهُ نَفۡسًا إِلَّا وُسۡعَهَاۚ لَهَا مَا كَسَبَتۡ وَعَلَيۡهَا مَا ٱكۡتَسَبَتۡۗ رَبَّنَا لَا تُؤَاخِذۡنَآ إِن نَّسِينَآ أَوۡ أَخۡطَأۡنَاۚ رَبَّنَا وَلَا تَحۡمِلۡ عَلَيۡنَآ إِصۡرٗا كَمَا حَمَلۡتَهُۥ عَلَى ٱلَّذِينَ مِن قَبۡلِنَاۚ رَبَّنَا وَلَا تُحَمِّلۡنَا مَا لَا طَاقَةَ لَنَا بِهِۦۖ وَٱعۡفُ عَنَّا وَٱغۡفِرۡ لَنَا وَٱرۡحَمۡنَآۚ أَنتَ مَوۡلَىٰنَا فَٱنصُرۡنَا عَلَى ٱلۡقَوۡمِ ٱلۡكَٰفِرِينَ ﴿٢٨٦﴾","q":true},{"n":10,"ref":"Al-Nasa'i · 100 times in the morning: Al-Bukhari, Muslim","mean":"There is no god but Allah alone, without partner; His is the dominion and the praise, and He has power over all things.","note":"10 times, or 100 times for the full reward.","id":"e-tahlil","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ","q":false},{"n":100,"ref":"Muslim","mean":"Glory be to Allah and praise Him.","note":null,"id":"e-subhan","t":"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ","q":false},{"n":10,"ref":"Al-Tabarani","mean":"O Allah, send prayers and peace upon our Prophet Muhammad.","note":null,"id":"e-salat","t":"اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ","q":false}],"parents":[{"id":"p1","t":"رَّبِّ ٱرۡحَمۡهُمَا كَمَا رَبَّيَانِي صَغِيرٗا ﴿٢٤﴾","q":true,"n":1,"ref":"Al-Isra 17:24","mean":"My Lord, have mercy on them as they raised me when I was small.","note":null},{"id":"p2","t":"رَبَّنَا ٱغۡفِرۡ لِي وَلِوَٰلِدَيَّ وَلِلۡمُؤۡمِنِينَ يَوۡمَ يَقُومُ ٱلۡحِسَابُ ﴿٤١﴾","q":true,"n":1,"ref":"Ibrahim 14:41","mean":"Our Lord, forgive me, my parents and the believers on the Day the reckoning is established.","note":null},{"id":"p3","t":"رَّبِّ ٱغۡفِرۡ لِي وَلِوَٰلِدَيَّ وَلِمَن دَخَلَ بَيۡتِيَ مُؤۡمِنٗا وَلِلۡمُؤۡمِنِينَ وَٱلۡمُؤۡمِنَٰتِۖ وَلَا تَزِدِ ٱلظَّـٰلِمِينَ إِلَّا تَبَارَۢا ﴿٢٨﴾","q":true,"n":1,"ref":"Nuh 71:28","mean":"My Lord, forgive me, my parents, whoever enters my house a believer, and the believing men and women.","note":null},{"id":"p4","t":"رَبِّ أَوۡزِعۡنِيٓ أَنۡ أَشۡكُرَ نِعۡمَتَكَ ٱلَّتِيٓ أَنۡعَمۡتَ عَلَيَّ وَعَلَىٰ وَٰلِدَيَّ وَأَنۡ أَعۡمَلَ صَٰلِحٗا تَرۡضَىٰهُ وَأَصۡلِحۡ لِي فِي ذُرِّيَّتِيٓۖ إِنِّي تُبۡتُ إِلَيۡكَ وَإِنِّي مِنَ ٱلۡمُسۡلِمِينَ ﴿١٥﴾","q":true,"n":1,"ref":"Al-Ahqaf 46:15","mean":"My Lord, enable me to be grateful for Your favour upon me and my parents, to do good You approve, and make my offspring righteous.","note":null},{"id":"p5","t":"اللَّهُمَّ احْفَظْ وَالِدَيَّ، وَبَارِكْ لَهُمَا فِي أَعْمَارِهِمَا، وَأَلْبِسْهُمَا ثَوْبَ الصِّحَّةِ وَالْعَافِيَةِ، وَاجْزِهِمَا عَنِّي خَيْرَ الْجَزَاءِ، وَأَعِنِّي عَلَى بِرِّهِمَا وَرِضَاهُمَا","q":false,"n":1,"ref":"General supplication · not a narrated text","mean":"O Allah, protect my parents, bless their lives, clothe them in health, reward them on my behalf and help me honour them.","note":"For living parents."},{"id":"p6","t":"اللَّهُمَّ اغْفِرْ لَهُمَا وَارْحَمْهُمَا، وَعَافِهِمَا وَاعْفُ عَنْهُمَا، وَأَكْرِمْ نُزُلَهُمَا، وَوَسِّعْ مُدْخَلَهُمَا، وَاجْعَلْ قَبْرَيْهِمَا رَوْضَةً مِنْ رِيَاضِ الْجَنَّةِ","q":false,"n":1,"ref":"Adapted from the funeral prayer · Muslim","mean":"Forgive them, have mercy on them, pardon them, honour their arrival and widen their resting place.","note":"For parents who have passed away."}],"children":[{"id":"c1","t":"رَبَّنَا هَبۡ لَنَا مِنۡ أَزۡوَٰجِنَا وَذُرِّيَّـٰتِنَا قُرَّةَ أَعۡيُنٖ وَٱجۡعَلۡنَا لِلۡمُتَّقِينَ إِمَامًا ﴿٧٤﴾","q":true,"n":1,"ref":"Al-Furqan 25:74","mean":"Our Lord, grant us from our spouses and offspring the comfort of our eyes, and make us leaders of the righteous.","note":null},{"id":"c2","t":"رَبِّ ٱجۡعَلۡنِي مُقِيمَ ٱلصَّلَوٰةِ وَمِن ذُرِّيَّتِيۚ رَبَّنَا وَتَقَبَّلۡ دُعَآءِ ﴿٤٠﴾","q":true,"n":1,"ref":"Ibrahim 14:40","mean":"My Lord, make me steadfast in prayer, and my offspring too; our Lord, accept my supplication.","note":null},{"id":"c3","t":"رَبَّنَا وَٱجۡعَلۡنَا مُسۡلِمَيۡنِ لَكَ وَمِن ذُرِّيَّتِنَآ أُمَّةٗ مُّسۡلِمَةٗ لَّكَ وَأَرِنَا مَنَاسِكَنَا وَتُبۡ عَلَيۡنَآۖ إِنَّكَ أَنتَ ٱلتَّوَّابُ ٱلرَّحِيمُ ﴿١٢٨﴾","q":true,"n":1,"ref":"Al-Baqarah 2:128","mean":"Our Lord, make us submissive to You and of our descendants a nation submissive to You.","note":null},{"id":"c4","t":"رَبِّ هَبۡ لِي مِن لَّدُنكَ ذُرِّيَّةٗ طَيِّبَةًۖ إِنَّكَ سَمِيعُ ٱلدُّعَآءِ ﴿٣٨﴾","q":true,"n":1,"ref":"Al Imran 3:38","mean":"My Lord, grant me from Yourself good offspring; You hear every supplication.","note":null},{"id":"c5","t":"وَأَصۡلِحۡ لِي فِي ذُرِّيَّتِيٓۖ إِنِّي تُبۡتُ إِلَيۡكَ وَإِنِّي مِنَ ٱلۡمُسۡلِمِينَ ﴿١٥﴾","q":true,"n":1,"ref":"Al-Ahqaf 46:15","mean":"And make my offspring righteous for me; I have turned to You and I am of the Muslims.","note":null},{"id":"c6","t":"أُعِيذُكُمْ بِكَلِمَاتِ اللَّهِ التَّامَّةِ، مِنْ كُلِّ شَيْطَانٍ وَهَامَّةٍ، وَمِنْ كُلِّ عَيْنٍ لَامَّةٍ","q":false,"n":3,"ref":"Al-Bukhari","mean":"I commend you to the protection of Allah's perfect words from every devil, every harmful creature and every evil eye.","note":"The Prophet ﷺ said it over Al-Hasan and Al-Husayn (أُعِيذُكُمَا). For one child: أُعِيذُكَ / أُعِيذُكِ."},{"id":"c7","t":"اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِكَ الَّذِي أَشْرَقَتْ لَهُ السَّمَاوَاتُ وَالْأَرْضُ، أَنْ تَجْعَلَ أَوْلَادِي فِي حِرْزِكَ وَحِفْظِكَ وَجِوَارِكَ وَتَحْتَ كَنَفِكَ.\nاللَّهُمَّ صُبَّ عَلَى أَوْلَادِي الْخَيْرَ صَبًّا، وَلَا تَجْعَلْ عَيْشَهُمْ كَدًّا كَدًّا.\nرَبِّ أَعِنْ أَوْلَادِي وَلَا تُعِنْ عَلَيْهِمْ، وَانْصُرْ أَوْلَادِي وَلَا تَنْصُرْ عَلَيْهِمْ، وَامْكُرْ لَهُمْ وَلَا تَمْكُرْ عَلَيْهِمْ، وَاهْدِهِمْ وَيَسِّرِ الْهُدَى لَهُمْ، وَانْصُرْهُمْ عَلَى مَنْ بَغَى عَلَيْهِمْ.\nرَبِّ اجْعَلْهُمْ لَكَ شَاكِرِينَ، لَكَ ذَاكِرِينَ، لَكَ رَهَّابِينَ، لَكَ مُطِيعِينَ، إِلَيْكَ مُخْبِتِينَ، إِلَيْكَ مُنِيبِينَ.\nرَبِّ تَقَبَّلْ تَوْبَتَهُمْ، وَاغْسِلْ حَوْبَتَهُمْ، وَأَجِبْ دَعْوَتَهُمْ، وَثَبِّتْ حُجَّتَهُمْ، وَاهْدِ قُلُوبَهُمْ، وَسَدِّدْ أَلْسِنَتَهُمْ، وَاسْلُلْ سَخِيمَةَ قُلُوبِهِمْ.\nآمِينَ يَا رَبَّ الْعَالَمِينَ.","q":false,"n":1,"ref":"Adapted for one's children · the «رَبِّ أَعِنِّي» part is from the Prophet's ﷺ duaa (Abu Dawud, Al-Tirmidhi)","mean":"O Allah, by the light of Your Face, place my children in Your protection, care and shelter; pour goodness upon them, help and guide them, make them grateful, mindful and devoted to You, accept their repentance and purify their hearts.","note":"A comprehensive duaa for one's children."}],"travel":[{"id":"t1","t":"بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ","q":false,"n":1,"ref":"Abu Dawud, Al-Tirmidhi","mean":"In the name of Allah, I place my trust in Allah; there is no power nor might except with Allah.","note":"On leaving home."},{"id":"t2","t":"اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ، اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي السَّفَرِ، وَالْخَلِيفَةُ فِي الْأَهْلِ، اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ وَعْثَاءِ السَّفَرِ، وَكَآبَةِ الْمَنْظَرِ، وَسُوءِ الْمُنْقَلَبِ فِي الْمَالِ وَالْأَهْلِ","q":false,"n":1,"ref":"Muslim","mean":"Glory to Him who subjected this to us… O Allah, ease this journey, You are the Companion on the road and the Guardian of the family.","note":"When the journey begins, on boarding the car or plane."},{"id":"t3","t":"آيِبُونَ، تَائِبُونَ، عَابِدُونَ، لِرَبِّنَا حَامِدُونَ","q":false,"n":1,"ref":"Muslim","mean":"Returning, repenting, worshipping and praising our Lord.","note":"On the way back, after repeating the travel duaa."},{"id":"t4","t":"أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ","q":false,"n":1,"ref":"Muslim","mean":"I seek refuge in the perfect words of Allah from the evil of what He created.","note":"On stopping at a place or hotel: nothing will harm you until you leave."},{"id":"t5","t":"أَسْتَوْدِعُ اللَّهَ دِينَكَ، وَأَمَانَتَكَ، وَخَوَاتِيمَ عَمَلِكَ","q":false,"n":1,"ref":"Al-Tirmidhi","mean":"I entrust to Allah your religion, your trust and the final outcomes of your deeds.","note":"Said to the one who is travelling."},{"id":"t6","t":"أَسْتَوْدِعُكُمُ اللَّهَ الَّذِي لَا تَضِيعُ وَدَائِعُهُ","q":false,"n":1,"ref":"Ibn Majah","mean":"I leave you in the care of Allah, whose trusts are never lost.","note":"Said by the traveller to those staying behind."}],"prayer":[{"id":"a1","t":"أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ. اللَّهُمَّ أَنْتَ السَّلَامُ، وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ","q":false,"n":1,"ref":"Muslim","mean":"I seek Allah's forgiveness (three times). O Allah, You are Peace and from You is peace; blessed are You, Owner of majesty and honour.","note":null},{"id":"a2","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلَا مُعْطِيَ لِمَا مَنَعْتَ، وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ","q":false,"n":1,"ref":"Al-Bukhari, Muslim","mean":"None can withhold what You give, nor give what You withhold, and no one's wealth avails him against You.","note":null},{"id":"a3","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ، لَا إِلَهَ إِلَّا اللَّهُ، وَلَا نَعْبُدُ إِلَّا إِيَّاهُ، لَهُ النِّعْمَةُ وَلَهُ الْفَضْلُ وَلَهُ الثَّنَاءُ الْحَسَنُ، لَا إِلَهَ إِلَّا اللَّهُ مُخْلِصِينَ لَهُ الدِّينَ وَلَوْ كَرِهَ الْكَافِرُونَ","q":false,"n":1,"ref":"Muslim","mean":"There is no power nor might except with Allah… we worship none but Him; His are favour, grace and the finest praise.","note":null},{"id":"a4","t":"سُبْحَانَ اللَّهِ","q":false,"n":33,"ref":"Muslim","mean":"Glory be to Allah.","note":null},{"id":"a5","t":"الْحَمْدُ لِلَّهِ","q":false,"n":33,"ref":"Muslim","mean":"All praise is for Allah.","note":null},{"id":"a6","t":"اللَّهُ أَكْبَرُ","q":false,"n":33,"ref":"Muslim","mean":"Allah is the Greatest.","note":null},{"id":"a7","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ","q":false,"n":1,"ref":"Muslim","mean":"Completes the hundred: sins are forgiven even if like the foam of the sea.","note":null},{"id":"a8","t":"ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلۡحَيُّ ٱلۡقَيُّومُۚ لَا تَأۡخُذُهُۥ سِنَةٞ وَلَا نَوۡمٞۚ لَّهُۥ مَا فِي ٱلسَّمَٰوَٰتِ وَمَا فِي ٱلۡأَرۡضِۗ مَن ذَا ٱلَّذِي يَشۡفَعُ عِندَهُۥٓ إِلَّا بِإِذۡنِهِۦۚ يَعۡلَمُ مَا بَيۡنَ أَيۡدِيهِمۡ وَمَا خَلۡفَهُمۡۖ وَلَا يُحِيطُونَ بِشَيۡءٖ مِّنۡ عِلۡمِهِۦٓ إِلَّا بِمَا شَآءَۚ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ وَلَا يَـُٔودُهُۥ حِفۡظُهُمَاۚ وَهُوَ ٱلۡعَلِيُّ ٱلۡعَظِيمُ ﴿٢٥٥﴾","q":true,"n":1,"ref":"Al-Baqarah 2:255 · Al-Nasa'i","mean":"Ayat al-Kursi.","note":"After every obligatory prayer."},{"id":"a9","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ هُوَ ٱللَّهُ أَحَدٌ ﴿١﴾ ٱللَّهُ ٱلصَّمَدُ ﴿٢﴾ لَمۡ يَلِدۡ وَلَمۡ يُولَدۡ ﴿٣﴾ وَلَمۡ يَكُن لَّهُۥ كُفُوًا أَحَدُۢ ﴿٤﴾","q":true,"n":1,"ref":"Abu Dawud","mean":"Al-Ikhlas.","note":"Three times after Fajr and Maghrib."},{"id":"a10","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلۡفَلَقِ ﴿١﴾ مِن شَرِّ مَا خَلَقَ ﴿٢﴾ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ﴿٣﴾ وَمِن شَرِّ ٱلنَّفَّـٰثَٰتِ فِي ٱلۡعُقَدِ ﴿٤﴾ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ﴿٥﴾","q":true,"n":1,"ref":"Abu Dawud","mean":"Al-Falaq.","note":"Three times after Fajr and Maghrib."},{"id":"a11","t":"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ\nقُلۡ أَعُوذُ بِرَبِّ ٱلنَّاسِ ﴿١﴾ مَلِكِ ٱلنَّاسِ ﴿٢﴾ إِلَٰهِ ٱلنَّاسِ ﴿٣﴾ مِن شَرِّ ٱلۡوَسۡوَاسِ ٱلۡخَنَّاسِ ﴿٤﴾ ٱلَّذِي يُوَسۡوِسُ فِي صُدُورِ ٱلنَّاسِ ﴿٥﴾ مِنَ ٱلۡجِنَّةِ وَٱلنَّاسِ ﴿٦﴾","q":true,"n":1,"ref":"Abu Dawud","mean":"Al-Nas.","note":"Three times after Fajr and Maghrib."},{"id":"a12","t":"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ","q":false,"n":10,"ref":"Al-Tirmidhi","mean":"He gives life and causes death, and He has power over all things.","note":"After Fajr and Maghrib."},{"id":"a13","t":"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا","q":false,"n":1,"ref":"Ibn Majah","mean":"Beneficial knowledge, good provision and accepted deeds.","note":"After Fajr."},{"id":"a14","t":"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ، وَشُكْرِكَ، وَحُسْنِ عِبَادَتِكَ","q":false,"n":1,"ref":"Abu Dawud, Al-Nasa'i","mean":"O Allah, help me to remember You, thank You and worship You well.","note":null}]};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem('duaa.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('duaa.'+k,JSON.stringify(v))}catch(e){}}};
+const arNum=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+
+const SECTIONS=[
+ {id:'home',en:'Today',ar:'اليوم'},
+ {id:'morning',en:'Morning',ar:'أذكار الصباح'},
+ {id:'evening',en:'Evening',ar:'أذكار المساء'},
+ {id:'parents',en:'For my parents',ar:'دعاء للوالدين'},
+ {id:'children',en:'For my children',ar:'دعاء للأبناء'},
+ {id:'travel',en:'Travel',ar:'دعاء السفر'},
+ {id:'after-prayer',en:'After prayer',ar:'أذكار بعد الصلاة',key:'prayer'},
+ {id:'tasbeeh',en:'Tasbeeh',ar:'التسبيح'},
+ {id:'quran',en:'Quran',ar:'القرآن الكريم'}];
+const listOf=s=>DATA[s.key||s.id]||[];
+
+const UQ={fajr:18.5,ishaMin:90,label:'Umm al-Qura'};
+const CITIES=[
+ {n:'Riyadh',lat:24.7136,lng:46.6753,tz:3,z:'Asia/Riyadh',m:UQ},
+ {n:'Jeddah',lat:21.4858,lng:39.1925,tz:3,z:'Asia/Riyadh',m:UQ},
+ {n:'Makkah',lat:21.4225,lng:39.8262,tz:3,z:'Asia/Riyadh',m:UQ},
+ {n:'Madinah',lat:24.4672,lng:39.6111,tz:3,z:'Asia/Riyadh',m:UQ},
+ {n:'Dammam',lat:26.4207,lng:50.0888,tz:3,z:'Asia/Riyadh',m:UQ},
+ {n:'Dubai',lat:25.2048,lng:55.2708,tz:4,z:'Asia/Dubai',m:{fajr:18.2,isha:18.2,label:'UAE (18.2°)'}},
+ {n:'Algiers',lat:36.7538,lng:3.0588,tz:1,z:'Africa/Algiers',m:{fajr:18,isha:17,label:'Algeria (18° / 17°)'}}];
+const MWL={fajr:18,isha:17,label:'Muslim World League (18° / 17°)'};
+function myLoc(){const L=store.get('loc',null);if(!L)return null;const z=Intl.DateTimeFormat().resolvedOptions().timeZone;
+ return {n:'My location',lat:L.lat,lng:L.lng,tz:-new Date().getTimezoneOffset()/60,z,m:z==='Asia/Riyadh'?UQ:MWL}}
+function cityList(){const m=myLoc();return m?[m,...CITIES]:CITIES}
+let city=cityList().find(c=>c.n===store.get('city','Riyadh'))||CITIES[0];
+function fillCities(){$('#city').innerHTML=cityList().map(c=>`<option${c.n===city.n?' selected':''}>${esc(c.n)}</option>`).join('')+'<option value="__loc">Use my location…</option>'}
+function setCity(n){city=cityList().find(c=>c.n===n)||CITIES[0];store.set('city',city.n);cache=null;fillCities();tick()}
+function locate(done){if(!navigator.geolocation){done&&done('Location is not available on this device.');fillCities();return}
+ navigator.geolocation.getCurrentPosition(p=>{store.set('loc',{lat:+p.coords.latitude.toFixed(4),lng:+p.coords.longitude.toFixed(4)});setCity('My location');done&&done()},
+  ()=>{done&&done('Location permission was refused. Pick a city instead.');fillCities()},{timeout:10000})}
+fillCities();
+$('#city').addEventListener('change',e=>{if(e.target.value==='__loc')locate(m=>{if(m)$('#method').textContent=m});else setCity(e.target.value)});
+const standalone=window.top===window;
+if(standalone&&store.get('city',null)===null){const ov=document.createElement('div');ov.className='ov';
+ ov.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="ovh"><h2 id="ovh">Assalamu alaikum</h2><p>Choose where you are, so prayer times are right for you.</p><p id="ovm" style="color:#b4462f"></p><button class="loc" data-loc>Use my location</button>${CITIES.map(c=>`<button data-c="${esc(c.n)}">${esc(c.n)}</button>`).join('')}</div>`;
+ document.body.appendChild(ov);
+ ov.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.loc!==undefined){b.textContent='Finding your location…';locate(m=>{if(m){$('#ovm').textContent=m;b.textContent='Use my location'}else ov.remove()})}
+  else{setCity(b.dataset.c);ov.remove()}})}
+
+/* prayer times: standard solar algorithm, two refinement passes */
+const R=Math.PI/180,fx=(a,b)=>((a%b)+b)%b;
+function julian(y,m,d){if(m<=2){y--;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5}
+function sun(jd){const D=jd-2451545,g=fx(357.529+.98560028*D,360)*R,q=fx(280.459+.98564736*D,360),L=fx(q+1.915*Math.sin(g)+.02*Math.sin(2*g),360)*R,e=(23.439-3.6e-7*D)*R;
+ const ra=fx(Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L))/R/15,24);let eq=q/15-ra;eq=fx(eq+12,24)-12;return{dec:Math.asin(Math.sin(e)*Math.sin(L)),eq}}
+function times(y,mo,d,c,ramadan){
+ const jd=julian(y,mo,d)-c.lng/360,p=c.lat*R;
+ const mid=t=>12-sun(jd+t/24).eq;
+ const ha=(alt,t)=>{const {dec}=sun(jd+t/24);const x=(Math.sin(alt*R)-Math.sin(dec)*Math.sin(p))/(Math.cos(dec)*Math.cos(p));return Math.acos(Math.max(-1,Math.min(1,x)))/R/15};
+ const asrAlt=t=>{const {dec}=sun(jd+t/24);return Math.atan(1/(1+Math.tan(Math.abs(p-dec))))/R};
+ let t={f:5,s:6,d:12,a:13,m:18,i:19};
+ for(let k=0;k<2;k++){t={f:mid(t.f)-ha(-c.m.fajr,t.f),s:mid(t.s)-ha(-.833,t.s),d:mid(t.d),a:mid(t.a)+ha(asrAlt(t.a),t.a),m:mid(t.m)+ha(-.833,t.m),i:c.m.ishaMin?0:mid(t.i)+ha(-c.m.isha,t.i)}}
+ const adj=c.tz-c.lng/15;for(const k in t)t[k]+=adj;
+ if(c.m.ishaMin)t.i=t.m+(c.m.ishaMin+(ramadan?30:0))/60;
+ for(const k in t)t[k]=Math.round(t[k]*60)/60;
+ return t}
+const PR=[['f','Fajr','الفجر'],['s','Sunrise','الشروق'],['d','Dhuhr','الظهر'],['a','Asr','العصر'],['m','Maghrib','المغرب'],['i','Isha','العشاء']];
+const hm=h=>{h=fx(h,24);let H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return String(H).padStart(2,'0')+':'+String(M).padStart(2,'0')};
+
+function nowIn(c){const p={};for(const x of new Intl.DateTimeFormat('en-GB',{timeZone:c.z,year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(new Date()))p[x.type]=+x.value||x.value;return p}
+function isRamadan(c){try{const m=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{timeZone:c.z,month:'numeric'}).formatToParts(new Date()).find(x=>x.type==='month');return +m.value===9}catch(e){return false}}
+let cache=null;
+function today(){const n=nowIn(city);const key=n.year+'-'+n.month+'-'+n.day;
+ if(!cache||cache.key!==key){const ram=isRamadan(city);const tm=new Date(Date.UTC(n.year,n.month-1,n.day+1));
+  cache={key,ram,t:times(n.year,n.month,n.day,city,ram),tt:times(tm.getUTCFullYear(),tm.getUTCMonth()+1,tm.getUTCDate(),city,ram)}}
+ return {n,...cache}}
+
+const SKY={night:['#071a2b','#123a52'],dawn:['#23406a','#e59a7a'],day:['#1d6f92','#56aec3'],gold:['#2a5f7d','#e7a35c'],dusk:['#262a58','#b8676a']};
+function tick(){
+ const {n,t,tt,ram}=today();const h=n.hour+n.minute/60+n.second/3600;
+ const clock=String(n.hour).padStart(2,'0')+':'+String(n.minute).padStart(2,'0');
+ $('#time').innerHTML=esc(clock)+'<small>'+String(n.second).padStart(2,'0')+'</small>';
+ $('#mtime').textContent=clock;
+ let hij='';try{hij=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-arab',{timeZone:city.z,day:'numeric',month:'long',year:'numeric'}).format(new Date())}catch(e){}
+ $('#hijri').textContent=hij;$('#mhijri').textContent=hij;
+ $('#greg').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:city.z,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
+ let nx=PR.find(([k])=>k!=='s'&&t[k]>h),when=nx?t[nx[0]]:tt.f+24;if(!nx)nx=PR[0];
+ const left=Math.max(0,when-h),lh=Math.floor(left),lm=Math.floor((left-lh)*60);
+ const lt=(lh?lh+'h ':'')+lm+'m';
+ $('#next').innerHTML=`Next: <b>${esc(nx[1])} · ${esc(nx[2])}</b> at ${hm(when)} — in ${esc(lt)}`;
+ $('#mnext').innerHTML=`<b>${esc(nx[1])}</b> in ${esc(lt)}`;
+ $('#strip').innerHTML=PR.map(([k,en,ar])=>`<div class="pt${k===nx[0]?' on':''}"><div class="ar">${ar}</div><div class="en">${en}</div><div class="tm">${hm(t[k])}</div></div>`).join('');
+ $('#method').textContent=`${city.n} · ${city.m.label} method${ram&&city.m.ishaMin?' · Ramadan Isha +30 min':''} · calculated times, may differ from your mosque by 1–2 min`;
+ const ph=h<t.f||h>=t.i?'night':h<t.s+.5?'dawn':h<t.a?'day':h<t.m?'gold':'dusk';
+ $('#s1').setAttribute('stop-color',SKY[ph][0]);$('#s2').setAttribute('stop-color',SKY[ph][1]);
+ const orb=$('#orb');let f,isSun=h>=t.s&&h<t.m;
+ if(isSun)f=(h-t.s)/(t.m-t.s);else{const span=24-(t.m-t.s);f=(fx(h-t.m,24))/span}
+ orb.setAttribute('cx',60+280*f);orb.setAttribute('cy',250-200*Math.sin(Math.PI*f));
+ orb.setAttribute('fill',isSun?'#ffd77a':'#f1f4ff');orb.setAttribute('r',isSun?17:12);
+ orb.style.filter=isSun?'drop-shadow(0 0 14px #ffd77a)':'drop-shadow(0 0 8px #cfd8ff)';
+ if(route()==='home')updateNow(h,t);}
+
+/* counts, per day */
+const dayKey=()=>'c.'+today().key;
+let counts=store.get(dayKey(),{});
+const remain=it=>counts[it.id]??it.n;
+const doneOf=s=>listOf(s).filter(it=>remain(it)===0).length;
+let scale=store.get('scale',1),showMean=store.get('mean',true);
+document.documentElement.style.setProperty('--sc',scale);
+
+function route(){const h=location.hash.slice(1);return SECTIONS.some(s=>s.id===h)?h:'home'}
+function nav(){const r=route();$('#nav').innerHTML=SECTIONS.map(s=>`<a href="#${s.id}"${s.id===r?' aria-current="page"':''}>${esc(s.en)}</a>`).join('');
+ const a=$('#nav [aria-current]');if(a)a.scrollIntoView({inline:'center',block:'nearest'})}
+
+function suggest(h,t){if(h>=t.f&&h<t.d)return 'morning';if(h>=t.a&&h<t.i+1)return 'evening';return null}
+function updateNow(h,t){const el=$('#nowcard');if(!el)return;const s=suggest(h,t);const want=s||'after-prayer';if(el.dataset.s===want)return;
+ const sec=SECTIONS.find(x=>x.id===want);el.dataset.s=want;el.href='#'+want;
+ el.innerHTML=`<div class="k">${s?'Now is the time for':'After your next prayer'}</div><div class="t">${esc(sec.en)} adhkar</div><div class="a">${esc(sec.ar)}</div>`}
+
+function home(){const {n,t}=today();
+ $('#view').innerHTML=`<a class="now" id="nowcard"></a><div class="tiles">${SECTIONS.filter(s=>s.id!=='home').map(s=>{
+  if(s.id==='tasbeeh'){const tot=Object.values(store.get('t.'+today().key,{})).reduce((a,b)=>a+b,0);return `<a class="tile" href="#tasbeeh"><span class="a">${s.ar}</span><span class="e">${s.en}</span><span class="p">${tot} counted today</span></a>`}
+  if(s.id==='quran'){const ls=store.get('lastSurah',null);return `<a class="tile" href="#quran"><span class="a">${s.ar}</span><span class="e">${s.en}</span><span class="p">${ls?'Continue · Surah '+esc(ls):'114 surahs'}</span></a>`}
+  const L=listOf(s),dn=doneOf(s);return `<a class="tile" href="#${s.id}"><span class="a">${s.ar}</span><span class="e">${esc(s.en)}</span><span class="p">${dn} of ${L.length} done today</span><div class="bar"><i style="width:${L.length?dn/L.length*100:0}%"></i></div></a>`}).join('')}</div>
+ <p class="small">Texts follow Hisn al-Muslim; Quranic verses are taken from the Tanzil Uthmani text. Counters reset each day and are kept on this device only.</p>`;
+ updateNow(n.hour+n.minute/60,t)}
+
+function card(it){const r=remain(it);const p=it.n?(it.n-r)/it.n*100:100;
+ return `<article class="card${it.q?' q':''}${r===0?' done':''}" id="c-${esc(it.id)}">
+ <div class="txt" dir="rtl" lang="ar">${esc(it.t)}</div>
+ ${it.mean?`<div class="mean">${esc(it.mean)}</div>`:''}
+ ${it.note?`<div class="note">${esc(it.note)}</div>`:''}
+ <div class="foot"><div class="ref">${esc(it.ref)}${it.n>1?` · ${it.n} times`:''}</div>
+ <div><button class="ctr" data-id="${esc(it.id)}" style="--p:${p}" aria-label="Count, ${r} remaining"><span>${r===0?'✓':r}</span></button><div class="of">${r===0?'done':'tap'}</div></div></div></article>`}
+
+function section(s){const L=listOf(s),dn=doneOf(s);
+ $('#view').innerHTML=`<div class="head"><h1><span class="a" lang="ar">${s.ar}</span>${esc(s.en)}</h1><div class="prog" id="prog">${dn} of ${L.length} done</div></div>
+ <div class="bar"><i id="pbar" style="width:${L.length?dn/L.length*100:0}%"></i></div>
+ <div class="tools"><button class="tb" id="smaller" aria-label="Smaller text">A−</button><button class="tb" id="bigger" aria-label="Larger text">A+</button>
+ <button class="tb" id="mean" aria-pressed="${showMean}">Meaning</button><button class="tb" id="reset">Reset counts</button></div>
+ <div class="cards${showMean?'':' hide-mean'}" id="cards">${L.map(card).join('')}</div>`;
+ tools();
+ $('#cards').addEventListener('click',e=>{const b=e.target.closest('.ctr');if(!b)return;const it=L.find(x=>x.id===b.dataset.id);const r=remain(it);if(r===0)return;
+  counts[it.id]=r-1;store.set(dayKey(),counts);const el=$('#c-'+CSS.escape(it.id));el.outerHTML=card(it);
+  if(r-1===0){const i=L.indexOf(it),nx=L.slice(i+1).find(x=>remain(x)>0);if(nx)setTimeout(()=>$('#c-'+CSS.escape(nx.id)).scrollIntoView({behavior:'smooth',block:'start'}),250)}
+  const d=doneOf(s);$('#prog').textContent=`${d} of ${L.length} done`+(d===L.length?' · تقبّل الله':'');$('#pbar').style.width=d/L.length*100+'%'});
+ const rb=$('#reset');let armed=0;rb.addEventListener('click',()=>{if(!armed){armed=1;rb.textContent='Tap again to reset';setTimeout(()=>{armed=0;rb.textContent='Reset counts'},3000);return}
+  L.forEach(it=>delete counts[it.id]);store.set(dayKey(),counts);section(s)})}
+
+function tools(){const set=v=>{scale=Math.min(1.8,Math.max(.8,Math.round(v*10)/10));store.set('scale',scale);document.documentElement.style.setProperty('--sc',scale)};
+ $('#smaller').onclick=()=>set(scale-.1);$('#bigger').onclick=()=>set(scale+.1);
+ const m=$('#mean');if(m)m.onclick=()=>{showMean=!showMean;store.set('mean',showMean);m.setAttribute('aria-pressed',showMean);$('#cards').classList.toggle('hide-mean',!showMean)}}
+
+/* Tasbeeh */
+const TAS=[
+ {id:'subhan',ar:'سُبْحَانَ اللَّهِ',en:'SubhanAllah · Glory be to Allah'},
+ {id:'hamd',ar:'الْحَمْدُ لِلَّهِ',en:'Alhamdulillah · All praise is for Allah'},
+ {id:'akbar',ar:'اللَّهُ أَكْبَرُ',en:'Allahu Akbar · Allah is the Greatest'},
+ {id:'tahlil',ar:'لَا إِلَهَ إِلَّا اللَّهُ',en:'La ilaha illallah · There is no god but Allah'},
+ {id:'istighfar',ar:'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ',en:'Astaghfirullah · I seek Allah\'s forgiveness'},
+ {id:'bihamdihi',ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',en:'SubhanAllahi wa bihamdihi · 100 a day (Muslim)'},
+ {id:'azim',ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ',en:'Light on the tongue, heavy on the scale (Al-Bukhari, Muslim)'},
+ {id:'hawqala',ar:'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',en:'A treasure of Paradise (Al-Bukhari, Muslim)'},
+ {id:'baqiyat',ar:'سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ',en:'The words most beloved to Allah (Muslim)'},
+ {id:'salat',ar:'اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ',en:'Salawat on the Prophet ﷺ'},
+ {id:'hasbuna',ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',en:'Allah is sufficient for us, the best Disposer of affairs'},
+ {id:'yunus',ar:'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ',en:'The duaa of Yunus (Al-Anbiya 21:87)'},
+ {id:'tahlil100',hide:1,ar:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',en:'Completes the hundred (Muslim)'}];
+const SET=[['subhan',33],['hamd',33],['akbar',33],['tahlil100',1]];
+const TG=[33,99,100,1000,0];
+let ts=Object.assign({sel:'subhan',target:33,cur:0,step:0},store.get('tas',{}));
+const tkey=()=>'t.'+today().key;
+const tday=()=>store.get(tkey(),{});
+const dz=id=>TAS.find(x=>x.id===id)||TAS[0];
+function tState(){
+ if(ts.sel==='set'){const fin=ts.step>=SET.length;const st=SET[Math.min(ts.step,SET.length-1)];return {d:dz(st[0]),target:st[1],fin}}
+ return {d:dz(ts.sel),target:ts.target,fin:false}}
+function tAdd(id,n){const t=tday();t[id]=Math.max(0,(t[id]||0)+n);store.set(tkey(),t)}
+function tasbeeh(){
+ $('#view').innerHTML=`<div class="head"><h1><span class="a" lang="ar">التسبيح</span>Tasbeeh</h1></div>
+ <div class="tas"><div class="tar" id="tar" lang="ar"></div><div class="ten" id="ten"></div>
+ <button class="big" id="big" aria-label="Count"><span><b id="cnt" aria-live="polite">0</b><small id="sub"></small></span></button>
+ <div class="row"><button class="tb" id="undo">Undo</button><button class="tb" id="treset">Reset</button><button class="tb" id="smaller" aria-label="Smaller text">A−</button><button class="tb" id="bigger" aria-label="Larger text">A+</button></div></div>
+ <div class="tg" id="tg" style="margin-top:22px"></div>
+ <h2 style="font-size:17px;margin:18px 0 0">Choose a dhikr</h2>
+ <div class="chips" id="chips">${TAS.filter(x=>!x.hide).map(x=>`<button class="chip" lang="ar" data-id="${x.id}" aria-pressed="${ts.sel===x.id}">${esc(x.ar)}</button>`).join('')}<button class="chip set" data-id="set" aria-pressed="${ts.sel==='set'}">After-prayer set · 33·33·33 + 1</button></div>
+ <div class="today"><h2>Counted today</h2><div id="tlist"></div></div>`;
+ tools();tDraw();
+ $('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
+  ts.sel=b.dataset.id;ts.cur=0;ts.step=0;store.set('tas',ts);
+  for(const c of document.querySelectorAll('.chip'))c.setAttribute('aria-pressed',c===b);tDraw();
+  const top=$('#view').getBoundingClientRect().top+scrollY-70;window.scrollTo({top,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+ $('#tg').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;ts.target=+b.dataset.t;ts.cur=0;store.set('tas',ts);tDraw()});
+ $('#big').addEventListener('click',tTap);
+ $('#undo').onclick=()=>{
+  if(ts.cur>0){ts.cur--;tAdd(tState().d.id,-1)}
+  else if(ts.sel==='set'&&ts.step>0){ts.step--;ts.cur=SET[ts.step][1]-1;tAdd(SET[ts.step][0],-1)}
+  store.set('tas',ts);tDraw()};
+ const rb=$('#treset');let armed=0;
+ rb.onclick=()=>{if(ts.cur===0&&ts.step===0)return;
+  if(!armed){armed=1;rb.textContent='Tap again to reset';setTimeout(()=>{armed=0;rb.textContent='Reset'},2500);return}
+  armed=0;rb.textContent='Reset';ts.cur=0;ts.step=0;store.set('tas',ts);tDraw()};
+ document.onkeydown=e=>{if(route()==='tasbeeh'&&(e.code==='Space'||e.code==='Enter')&&(e.target===document.body||e.target.id==='big')){e.preventDefault();tTap()}}}
+function tTap(){const {d,target,fin}=tState();if(fin)return;
+ ts.cur++;tAdd(d.id,1);
+ const hit=target&&ts.cur%target===0;
+ if(ts.sel==='set'&&ts.cur>=target){ts.step++;ts.cur=0}
+ store.set('tas',ts);
+ try{navigator.vibrate&&navigator.vibrate(hit?[40,60,40]:8)}catch(e){}
+ if(hit){const b=$('#big');b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),450)}
+ tDraw()}
+function tDraw(){const {d,target,fin}=tState();const set=ts.sel==='set';
+ $('#tar').textContent=fin?'تَقَبَّلَ اللَّهُ مِنَّا وَمِنْكُمْ':d.ar;
+ $('#ten').textContent=fin?'Set complete. Tap Reset to start again.':(set?`Step ${ts.step+1} of ${SET.length} · `:'')+d.en;
+ $('#tg').innerHTML=set?'':'Target '+TG.map(n=>`<button class="tb" data-t="${n}" aria-pressed="${ts.target===n}">${n||'∞'}</button>`).join('');
+ const c=ts.cur;let shown,p,sub;
+ if(fin){shown='✓';p=100;sub='done'}
+ else if(!target){shown=c;p=0;sub='no limit'}
+ else if(set){shown=c;p=c/target*100;sub=`of ${target}`}
+ else{const r=c%target;shown=c&&r===0?target:r;p=c&&r===0?100:r/target*100;const round=c?Math.floor((c-1)/target)+1:1;sub=`of ${target} · round ${round}`+(c>target?` · total ${c}`:'')}
+ $('#cnt').textContent=shown;$('#sub').textContent=sub;$('#big').style.setProperty('--p',p);
+ const t=tday();
+ $('#tlist').innerHTML=TAS.filter(x=>t[x.id]).map(x=>`<div class="trow"><span class="a" lang="ar">${esc(x.ar)}</span><b>${t[x.id]}</b></div>`).join('')||'<p class="small" style="margin:0">Nothing counted yet today.</p>'}
+
+/* Quran */
+let QURAN=null,qLoading=null;
+function loadQuran(){if(QURAN)return Promise.resolve(QURAN);qLoading=qLoading||fetch('quran.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>QURAN=j);return qLoading}
+function quran(){$('#view').innerHTML=`<div class="head"><h1><span class="a" lang="ar">القرآن الكريم</span>Quran</h1></div><div id="qv"><p class="msg">Loading the Mushaf…</p></div>`;
+ loadQuran().then(qList).catch(()=>{$('#qv').innerHTML='<p class="msg">The Quran text could not load. Check your connection and reopen this tab.</p>'})}
+function qList(){const ls=store.get('lastSurahN',0);
+ $('#qv').innerHTML=`${ls?`<a class="cont" href="#quran" id="cont">Continue reading · Surah ${esc(QURAN[ls-1][2])} <span lang="ar" style="font-family:var(--ar);font-size:20px">${esc(QURAN[ls-1][1])}</span></a>`:''}
+ <input class="search" id="qs" type="search" placeholder="Search surah name or number" aria-label="Search surah"><ul class="sl" id="sl"></ul>`;
+ const draw=q=>{q=q.trim().toLowerCase().replace(/[-'\s]/g,'');$('#sl').innerHTML=QURAN.filter(s=>!q||String(s[0])===q||s[2].toLowerCase().replace(/[-'\s]/g,'').includes(q)||s[1].includes(q)).map(s=>`<li><button data-n="${s[0]}"><span class="num"><i>${s[0]}</i></span><span class="st">${esc(s[2])}<small>${s[4].length} verses · ${s[3]==='meccan'?'Meccan':'Medinan'}</small></span><span class="sn">${esc(s[1])}</span></button></li>`).join('')||'<li class="msg">No surah matches.</li>'};
+ draw('');$('#qs').addEventListener('input',e=>draw(e.target.value));
+ $('#sl').addEventListener('click',e=>{const b=e.target.closest('button');if(b)openSurah(+b.dataset.n)});
+ const c=$('#cont');if(c)c.addEventListener('click',e=>{e.preventDefault();openSurah(ls)})}
+function openSurah(n){const s=QURAN[n-1];store.set('lastSurahN',n);store.set('lastSurah',s[2]);
+ $('#qv').innerHTML=`<div class="reader"><div class="rh"><button class="tb" id="back">All surahs</button><span><button class="tb" id="smaller" aria-label="Smaller text">A−</button> <button class="tb" id="bigger" aria-label="Larger text">A+</button></span></div>
+ <div class="surah-title"><div class="a" lang="ar">سورة ${esc(s[1])}</div><small>${n}. ${esc(s[2])} · ${s[4].length} verses · ${s[3]==='meccan'?'Meccan':'Medinan'}</small></div>
+ ${n!==1&&n!==9?`<div class="bism" lang="ar">${esc(QURAN[0][4][0])}</div>`:''}
+ <div class="ayat" lang="ar">${s[4].map((v,i)=>`<span id="v${i+1}">${esc(v)}</span> <span class="n">﴿${arNum(i+1)}﴾</span> `).join('')}</div>
+ <div class="rnav">${n>1?`<button class="tb" id="prev">← ${esc(QURAN[n-2][2])}</button>`:'<span></span>'}${n<114?`<button class="tb" id="nxt">${esc(QURAN[n][2])} →</button>`:''}</div></div>`;
+ tools();$('#back').onclick=()=>{qList();window.scrollTo(0,0)};
+ const p=$('#prev'),x=$('#nxt');if(p)p.onclick=()=>openSurah(n-1);if(x)x.onclick=()=>openSurah(n+1);
+ window.scrollTo(0,0)}
+
+function render(){const r=route();document.body.classList.toggle('home',r==='home');nav();
+ if(r==='home')home();else if(r==='quran')quran();else if(r==='tasbeeh')tasbeeh();else section(SECTIONS.find(s=>s.id===r));
+ if(r!=='home')window.scrollTo(0,0)}
+window.addEventListener('hashchange',render);
+if('serviceWorker' in navigator&&standalone&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
+let curKey=dayKey();tick();render();setInterval(()=>{const k=dayKey();if(k!==curKey){curKey=k;counts=store.get(k,{});if(route()!=='quran')render()}tick()},1000);
+}
+</script>
+</body>
+</html>
